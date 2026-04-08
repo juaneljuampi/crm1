@@ -4,7 +4,7 @@ interface Message {
   id: number;
   conversation_id: number;
   sender: string;
-  text: string; // ojo: tu backend devuelve "text" en el SELECT
+  text: string;
   timestamp: string;
 }
 
@@ -12,15 +12,17 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [number, setNumber] = useState("");
   const [text, setText] = useState("");
-  const [conversationId, setConversationId] = useState<number | null>(1); // 👈 usa un ID fijo o dinámico
-  const API = import.meta.env.VITE_API_URL; // ej: http://129.212.191.110:3000
+  const [conversationId, setConversationId] = useState<number | null>(null);
 
-  // 🔥 cargar mensajes
+  // 👇 URL fija de tu backend
+  const API = "http://129.212.191.110:3000/api";
+
+  // 🔥 cargar mensajes de una conversación
   const loadMessages = async () => {
     if (!conversationId) return;
 
     try {
-      const res = await fetch(`${API}/messages?conversationId=${conversationId}`);
+      const res = await fetch(`${API}/conversations/${conversationId}/messages`);
       if (!res.ok) throw new Error("Error cargando mensajes");
       const data = await res.json();
       setMessages(Array.isArray(data) ? data : []);
@@ -34,7 +36,7 @@ export default function Chat() {
     loadMessages();
   }, [conversationId]);
 
-  // 🔥 enviar mensaje
+  // 🔥 enviar mensaje (crea o usa conversación)
   const sendMessage = async () => {
     if (!number || !text) return alert("Debes ingresar número y mensaje");
 

@@ -15,7 +15,7 @@ export default function Chat() {
   const [conversationId, setConversationId] = useState<number | null>(null);
 
   // 👇 URL base desde tu .env
-  const API = import.meta.env.VITE_API_URL + "/api";
+  const API = `${import.meta.env.VITE_API_URL}/api`;
 
   // 🔥 cargar mensajes
   const loadMessages = async () => {
@@ -27,7 +27,7 @@ export default function Chat() {
       const data = await res.json();
       setMessages(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error(err);
+      console.error("❌ Error al cargar mensajes:", err);
       setMessages([]);
     }
   };
@@ -38,7 +38,10 @@ export default function Chat() {
 
   // 🔥 enviar mensaje
   const sendMessage = async () => {
-    if (!number || !text) return alert("Debes ingresar número y mensaje");
+    if (!number || !text) {
+      alert("Debes ingresar número y mensaje");
+      return;
+    }
 
     try {
       const res = await fetch(`${API}/conversations`, {
@@ -58,8 +61,8 @@ export default function Chat() {
       setText("");
       await loadMessages();
     } catch (err) {
-      console.error(err);
-      alert("❌ No se pudo enviar el mensaje");
+      console.error("❌ Error al enviar mensaje:", err);
+      alert("No se pudo enviar el mensaje");
     }
   };
 
@@ -68,7 +71,15 @@ export default function Chat() {
       <h2>Chat básico</h2>
 
       {/* Lista de mensajes */}
-      <div style={{ border: "1px solid #ccc", padding: "1rem", height: "300px", overflowY: "auto" }}>
+      <div
+        style={{
+          border: "1px solid #ccc",
+          padding: "1rem",
+          height: "300px",
+          overflowY: "auto",
+          marginBottom: "1rem",
+        }}
+      >
         {messages.length === 0 ? (
           <p>No hay mensajes</p>
         ) : (
@@ -81,7 +92,7 @@ export default function Chat() {
       </div>
 
       {/* Formulario de envío */}
-      <div style={{ marginTop: "1rem" }}>
+      <div>
         <input
           value={number}
           onChange={(e) => setNumber(e.target.value)}

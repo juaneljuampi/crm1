@@ -14,15 +14,15 @@ export default function Chat() {
   const [text, setText] = useState("");
   const [conversationId, setConversationId] = useState<number | null>(null);
 
-  // 👇 URL fija de tu backend
-  const API = "http://129.212.191.110:3000/api";
+  // 👇 URL base desde tu .env
+  const API = import.meta.env.VITE_API_URL + "/api";
 
-  // 🔥 cargar mensajes de una conversación
+  // 🔥 cargar mensajes
   const loadMessages = async () => {
     if (!conversationId) return;
 
     try {
-      const res = await fetch(`${API}/conversations/${conversationId}/messages`);
+      const res = await fetch(`${API}/messages?conversationId=${conversationId}`);
       if (!res.ok) throw new Error("Error cargando mensajes");
       const data = await res.json();
       setMessages(Array.isArray(data) ? data : []);
@@ -36,7 +36,7 @@ export default function Chat() {
     loadMessages();
   }, [conversationId]);
 
-  // 🔥 enviar mensaje (crea o usa conversación)
+  // 🔥 enviar mensaje
   const sendMessage = async () => {
     if (!number || !text) return alert("Debes ingresar número y mensaje");
 

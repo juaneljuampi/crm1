@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import api from "../api/client";
 
 interface Message {
   id: number;
@@ -8,26 +9,17 @@ interface Message {
   timestamp: string;
 }
 
-export default function Messages() {
+export default function ChatView() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [text, setText] = useState("");
 
-  // 👇 URL base desde tu .env
-  const API = import.meta.env.VITE_API_URL + "/api";
-
-  // 🔥 cargar todos los mensajes
+  // 🔥 cargar mensajes
   const loadMessages = async () => {
     try {
-      setLoading(true);
-      const res = await fetch(`${API}/messages`);
-      if (!res.ok) throw new Error("Error cargando mensajes");
-      const data = await res.json();
-      setMessages(Array.isArray(data) ? data : []);
+      const res = await api.get("/messages");
+      setMessages(res.data);
     } catch (err) {
-      console.error("❌ Error al cargar mensajes:", err);
-      setMessages([]);
-    } finally {
-      setLoading(false);
+      console.error("❌ Error cargando mensajes:", err);
     }
   };
 
@@ -35,33 +27,67 @@ export default function Messages() {
     loadMessages();
   }, []);
 
-  return (
-    <div style={{ padding: "1rem", maxWidth: "800px", margin: "auto" }}>
-      <h2>📩 Mensajes</h2>
+  // 🔥 enviar mensaje
+  const sendMessage = async () => {
+    if (!text.trim()) return;
+    try {
+      await api.post("/send", { to: "56992144697", body: text });
+      setText("");
+      await loadMessages();
+    } catch (err) {
+      console.error("❌ Error enviando mensaje:", err);
+    }
+  };
 
-      {loading ? (
-        <p>Cargando mensajes...</p>
-      ) : messages.length === 0 ? (
-        <p>No hay mensajes disponibles</p>
-      ) : (
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {messages.map((msg) => (
-            <li
-              key={msg.id}
-              style={{
-                borderBottom: "1px solid #ddd",
-                padding: "0.5rem 0",
-              }}
-            >
-              <strong>{msg.sender}:</strong> {msg.text}
-              <br />
-              <small>
-                Conversación #{msg.conversation_id} · {new Date(msg.timestamp).toLocaleString()}
-              </small>
-            </li>
-          ))}
-        </ul>
-      )}
+  return (
+    <div style={{ 
+      display: "flex", 
+      flexDirection: "column", 
+      height: "100vh", 
+      backgroundColor: "#ece5dd" 
+    }}>
+      {/* Header estilo WhatsApp */}
+      <div style={{ backgroundColor: "#075E54", color: "white", padding: "1rem" }}>
+        <h3>WhatsApp CRM</h3>
+      </div>
+
+      {/* Mensajes */}
+      <div style={{ flex: 1, padding: "1rem", overflowY: "auto" }}>
+        {messages.map((msg) => (
+          <div
+            key={msg.id}
+            style={{
+              maxWidth: "70%",
+              marginBottom: "10px",
+              padding: "10px",
+              borderRadius: "10px",
+              backgroundColor: msg.sender === "me" ? "#DCF8C6" : "white",
+              alignSelf: msg.sender === "me" ? "flex-end" : "flex-start",
+            }}
+          >
+            <p style={{ margin: 0 }}>{msg.text}</p>
+            <small style={{ fontSize: "0.7rem", color: "#555" }}>
+              {new Date(msg.timestamp).toLocaleTimeString()}
+            </small>
+          </div>
+        ))}
+      </div>
+
+      {/* Input abajo */}
+      <div style={{ display: "flex", padding: "0.5rem", backgroundColor: "#f0f0f0" }}>
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Escribe un mensaje..."
+          style={{ flex: 1, padding: "10px", borderRadius: "20px", border: "1px solid #ccc" }}
+        />
+        <button 
+          onClick={sendMessage} 
+          style={{ marginLeft: "10px", backgroundColor: "#25D366", color: "white", border: "none", borderRadius: "50%", width: "40px", height: "40px" }}
+        >
+          ➤
+        </button>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
-import Chat from "./components/Chat";
+import Messages from "./components/Messages";
 
 function App() {
-  return <Chat />;
+  return <Messages />;
 }
 
 export default App;

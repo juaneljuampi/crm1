@@ -15,9 +15,9 @@ export default function Chat() {
   const [conversationId, setConversationId] = useState<number | null>(null);
 
   // 👇 URL base desde tu .env
-  const API = `${import.meta.env.VITE_API_URL}/api`;
+  const API = import.meta.env.VITE_API_URL + "/api";
 
-  // 🔥 cargar mensajes
+  // 🔥 cargar mensajes de una conversación
   const loadMessages = async () => {
     if (!conversationId) return;
 
@@ -36,7 +36,7 @@ export default function Chat() {
     loadMessages();
   }, [conversationId]);
 
-  // 🔥 enviar mensaje
+  // 🔥 enviar mensaje (crea conversación si no existe)
   const sendMessage = async () => {
     if (!number || !text) {
       alert("Debes ingresar número y mensaje");
@@ -44,10 +44,14 @@ export default function Chat() {
     }
 
     try {
-      const res = await fetch(`${API}/conversations`, {
+      const res = await fetch(`${API}/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ to: number.trim(), body: text.trim() }),
+        body: JSON.stringify({
+          to: number.trim(),
+          body: text.trim(),
+          conversationId: conversationId ?? undefined,
+        }),
       });
 
       const data = await res.json();
